@@ -1,4 +1,4 @@
-package discovery
+package common
 
 type Service struct {
 	ID   string

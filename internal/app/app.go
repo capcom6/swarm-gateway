@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/capcom6/swarm-gateway-tutorial/internal/discovery"
+	"github.com/capcom6/swarm-gateway-tutorial/internal/repository"
 	"github.com/docker/docker/client"
 )
 
@@ -18,7 +19,11 @@ func Run() error {
 
 	var wg sync.WaitGroup
 
-	if err := startDiscovery(ctx, &wg); err != nil {
+	servicesRepo := repository.NewServicesRepository()
+	if err := startDiscovery(ctx, &wg, servicesRepo); err != nil {
+		return err
+	}
+	if err := startProxy(ctx, &wg, servicesRepo); err != nil {
 		return err
 	}
 
@@ -29,7 +34,7 @@ func Run() error {
 	return nil
 }
 
-func startDiscovery(ctx context.Context, wg *sync.WaitGroup) error {
+func startDiscovery(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repository.ServicesRepository) error {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
@@ -58,9 +63,37 @@ func startDiscovery(ctx context.Context, wg *sync.WaitGroup) error {
 				}
 				cancel()
 
-				for _, service := range services {
-					log.Printf("%s - %s:%d", service.Name, service.Host, service.Port)
+				servicesRepo.ReplaceServices(services)
+			}
+		}
+	}()
+
+	return nil
+}
+
+func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repository.ServicesRepository) error {
+	wg.Add(1)
+	go func() {
+		timer := time.NewTicker(5 * time.Second)
+		defer func() {
+			timer.Stop()
+			wg.Done()
+		}()
+
+		log.Println("Proxy Started")
+		for {
+			select {
+			case <-ctx.Done():
+				log.Println("Proxy Done")
+				return
+			case <-timer.C:
+				service, err := servicesRepo.GetServiceByHost("test.example.com")
+				if err != nil {
+					log.Println(err)
+					continue
 				}
+
+				log.Printf("%s - %s:%d", service.Name, service.Host, service.Port)
 			}
 		}
 	}()
