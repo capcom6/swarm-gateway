@@ -1,0 +1,11 @@
+@baseUrl=http://localhost:3000
+
+###
+GET {{baseUrl}}/ HTTP/1.1
+
+###
+GET {{baseUrl}}/host/test1.example.com HTTP/1.1
+
+###
+GET {{baseUrl}}/ HTTP/1.1
+Host: test.example.com

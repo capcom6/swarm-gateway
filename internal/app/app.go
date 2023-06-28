@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -11,6 +13,9 @@ import (
 	"github.com/capcom6/swarm-gateway-tutorial/internal/discovery"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/repository"
 	"github.com/docker/docker/client"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/proxy"
+	"github.com/valyala/fasthttp"
 )
 
 func Run() error {
@@ -72,30 +77,53 @@ func startDiscovery(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repos
 }
 
 func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repository.ServicesRepository) error {
+	app := fiber.New()
+
+	// app.Get("/", func(c *fiber.Ctx) error {
+	// 	return c.SendString("Hello, World!")
+	// })
+
+	app.Get("/*", func(c *fiber.Ctx) error {
+		host := c.Get("Host")
+		if host == "" {
+			return fiber.ErrBadRequest
+		}
+
+		service, err := servicesRepo.GetServiceByHost(host)
+		if errors.Is(err, repository.ErrSeviceNotFound) {
+			return fiber.ErrBadGateway
+		}
+
+		url := fmt.Sprintf("http://%s:%d/%s", service.Name, service.Port, c.Params("*"))
+
+		if err := proxy.DoTimeout(c, url, 5*time.Second); err != nil {
+			log.Printf("proxy error: %s", err)
+			if errors.Is(err, fasthttp.ErrTimeout) {
+				return fiber.ErrGatewayTimeout
+			}
+			return err
+		}
+		// Remove Server header from response
+		c.Response().Header.Del(fiber.HeaderServer)
+		return nil
+	})
+
 	wg.Add(1)
 	go func() {
-		timer := time.NewTicker(5 * time.Second)
-		defer func() {
-			timer.Stop()
-			wg.Done()
-		}()
-
-		log.Println("Proxy Started")
-		for {
-			select {
-			case <-ctx.Done():
-				log.Println("Proxy Done")
-				return
-			case <-timer.C:
-				service, err := servicesRepo.GetServiceByHost("test.example.com")
-				if err != nil {
-					log.Println(err)
-					continue
-				}
-
-				log.Printf("%s - %s:%d", service.Name, service.Host, service.Port)
-			}
+		if err := app.Listen(":3000"); err != nil {
+			log.Printf("can't listen: %s", err)
 		}
+
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		<-ctx.Done()
+
+		app.Shutdown()
+
+		wg.Done()
 	}()
 
 	return nil
