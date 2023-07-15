@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/capcom6/swarm-gateway-tutorial/internal/common"
+	"github.com/capcom6/swarm-gateway-tutorial/internal/config"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/discovery"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/listener"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/resolver"
@@ -83,6 +84,7 @@ func startDiscovery(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repos
 }
 
 func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repository.ServicesRepository) error {
+	config := config.Get()
 	app := fiber.New()
 
 	app.Use(logger.New())
@@ -110,7 +112,7 @@ func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repositor
 		return nil
 	})
 
-	tlsListener, err := tls.Listen("tcp", ":3443", listener.NewConfig(servicesRepo))
+	tlsListener, err := tls.Listen("tcp", ":3443", listener.NewConfig(servicesRepo, config.Acme))
 	if err != nil {
 		return err
 	}

@@ -21,4 +21,4 @@ docker-build-amd64:
 docker-build:
 	docker build -t $(image_name):$(image_tag) --build-arg PROJECT_NAME=$(project_name) -f build/package/Dockerfile .
 
-.PHONY: init run air test docker-build
+.PHONY: init run air test docker-build docker-build-amd64

@@ -20,3 +20,4 @@ LICENSE
 vendor/
 
 tmp/
+certs/

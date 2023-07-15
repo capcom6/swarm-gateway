@@ -4,17 +4,16 @@ import (
 	"context"
 	"crypto/tls"
 
+	"github.com/capcom6/swarm-gateway-tutorial/internal/config"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/repository"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 )
 
-func NewConfig(services *repository.ServicesRepository) *tls.Config {
+func NewConfig(services *repository.ServicesRepository, acmeCfg config.Acme) *tls.Config {
 	// Certificate manager
 	m := &autocert.Manager{
-		Client: &acme.Client{
-			DirectoryURL: "https://acme-staging-v02.api.letsencrypt.org/directory",
-		},
+		Client: makeClient(acmeCfg),
 		Prompt: autocert.AcceptTOS,
 		// Replace with your domain
 		HostPolicy: func(ctx context.Context, host string) error {
@@ -22,7 +21,7 @@ func NewConfig(services *repository.ServicesRepository) *tls.Config {
 			return err
 		},
 		// Folder to store the certificates
-		Cache: autocert.DirCache("./certs"),
+		Cache: makeCache(acmeCfg.Storage),
 	}
 
 	// TLS Config
@@ -38,4 +37,18 @@ func NewConfig(services *repository.ServicesRepository) *tls.Config {
 		},
 	}
 	return &cfg
+}
+
+func makeClient(cfg config.Acme) *acme.Client {
+	return &acme.Client{
+		DirectoryURL: cfg.DirectoryURL,
+	}
+}
+
+func makeCache(cfg config.Storage) autocert.Cache {
+	if cfg.Driver == "filesystem" {
+		return autocert.DirCache(cfg.Host)
+	}
+
+	return autocert.DirCache(cfg.Host)
 }
