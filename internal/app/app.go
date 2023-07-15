@@ -14,7 +14,9 @@ import (
 	"github.com/capcom6/swarm-gateway-tutorial/internal/repository"
 	"github.com/docker/docker/client"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/proxy"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/valyala/fasthttp"
 )
 
@@ -79,11 +81,10 @@ func startDiscovery(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repos
 func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repository.ServicesRepository) error {
 	app := fiber.New()
 
-	// app.Get("/", func(c *fiber.Ctx) error {
-	// 	return c.SendString("Hello, World!")
-	// })
+	app.Use(logger.New())
+	app.Use(recover.New())
 
-	app.Get("/*", func(c *fiber.Ctx) error {
+	app.Use(func(c *fiber.Ctx) error {
 		host := c.Get("Host")
 		if host == "" {
 			return fiber.ErrBadRequest
@@ -94,7 +95,11 @@ func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repositor
 			return fiber.ErrBadGateway
 		}
 
-		url := fmt.Sprintf("http://%s:%d/%s", service.Name, service.Port, c.Params("*"))
+		query := string(c.Context().URI().QueryString())
+		url := fmt.Sprintf("http://%s:%d%s", service.Name, service.Port, c.Path())
+		if len(query) > 0 {
+			url += "?" + query
+		}
 
 		if err := proxy.DoTimeout(c, url, 5*time.Second); err != nil {
 			log.Printf("proxy error: %s", err)

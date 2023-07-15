@@ -1,5 +1,5 @@
 project_name = swarm-gateway
-image_name = $(project_name)
+image_name = capcom6/swarm-gateway-tutorial
 image_tag = latest
 
 init:
