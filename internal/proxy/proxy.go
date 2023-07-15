@@ -18,7 +18,7 @@ var client = &fasthttp.Client{
 // This method can be used within a fiber.Handler
 func DoTimeout(c *fiber.Ctx, addr string, host string, timeout time.Duration) error {
 	return doAction(c, addr, func(cli *fasthttp.Client, req *fasthttp.Request, resp *fasthttp.Response) error {
-		req.Header.Set(fiber.HeaderHost, host)
+		req.Header.SetHost(host)
 		return cli.DoTimeout(req, resp, timeout)
 	})
 }
