@@ -105,7 +105,7 @@ func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repositor
 			if errors.Is(err, fasthttp.ErrTimeout) {
 				return fiber.ErrGatewayTimeout
 			}
-			return err
+			return fiber.ErrBadGateway
 		}
 		// Remove Server header from response
 		c.Response().Header.Del(fiber.HeaderServer)
