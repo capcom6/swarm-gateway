@@ -1,4 +1,4 @@
-package listener
+package acme
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
-func NewConfig(services *repository.ServicesRepository, acmeCfg config.Acme) *tls.Config {
+func NewConfig(services *repository.ServicesRepository, cache autocert.Cache, acmeCfg config.Acme) *tls.Config {
 	// Certificate manager
 	m := &autocert.Manager{
 		Client: makeClient(acmeCfg),
@@ -21,7 +21,7 @@ func NewConfig(services *repository.ServicesRepository, acmeCfg config.Acme) *tl
 			return err
 		},
 		// Folder to store the certificates
-		Cache: makeCache(acmeCfg.Storage),
+		Cache: cache,
 	}
 
 	// TLS Config
@@ -43,12 +43,4 @@ func makeClient(cfg config.Acme) *acme.Client {
 	return &acme.Client{
 		DirectoryURL: cfg.DirectoryURL,
 	}
-}
-
-func makeCache(cfg config.Storage) autocert.Cache {
-	if cfg.Driver == "filesystem" {
-		return autocert.DirCache(cfg.Host)
-	}
-
-	return autocert.DirCache(cfg.Host)
 }

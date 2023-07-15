@@ -14,7 +14,8 @@ import (
 	"github.com/capcom6/swarm-gateway-tutorial/internal/common"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/config"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/discovery"
-	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/listener"
+	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/acme"
+	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/acme/cache"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/resolver"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/repository"
 	"github.com/docker/docker/client"
@@ -112,9 +113,14 @@ func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repositor
 		return nil
 	})
 
-	tlsListener, err := tls.Listen("tcp", ":3443", listener.NewConfig(servicesRepo, config.Acme))
+	certsCache, err := cache.New(config.Acme.Storage)
 	if err != nil {
-		return err
+		return fmt.Errorf("can't create acme cache: %w", err)
+	}
+
+	tlsListener, err := tls.Listen("tcp", ":3443", acme.NewConfig(servicesRepo, certsCache, config.Acme))
+	if err != nil {
+		return fmt.Errorf("can't listen: %w", err)
 	}
 
 	wg.Add(1)

@@ -5,7 +5,9 @@ var DefaultConfig = Config{
 		DirectoryURL: "https://acme-v02.api.letsencrypt.org/directory",
 		Storage: Storage{
 			Driver: "filesystem",
-			Host:   "./certs",
+			Options: map[string]string{
+				"path": "./certs",
+			},
 		},
 	},
 }
