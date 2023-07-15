@@ -1,6 +1,6 @@
 project_name = swarm-gateway
 image_name = capcom6/swarm-gateway-tutorial
-image_tag = latest
+image_tag = dev
 
 init:
 	go mod download \
@@ -14,6 +14,9 @@ air:
 
 test:
 	go test ./...
+
+docker-build-amd64:
+	docker buildx build --platform linux/amd64 -t $(image_name):$(image_tag) --build-arg PROJECT_NAME=$(project_name) -f build/package/Dockerfile .
 
 docker-build:
 	docker build -t $(image_name):$(image_tag) --build-arg PROJECT_NAME=$(project_name) -f build/package/Dockerfile .

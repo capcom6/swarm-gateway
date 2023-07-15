@@ -1,4 +1,5 @@
 @baseUrl=http://localhost:3000
+@baseHttpsUrl=https://localhost:3443
 
 ###
 GET {{baseUrl}}/ HTTP/1.1
@@ -7,5 +8,9 @@ GET {{baseUrl}}/ HTTP/1.1
 GET {{baseUrl}}/host/test1.example.com HTTP/1.1
 
 ###
-GET {{baseUrl}}/ HTTP/1.1
+GET {{baseUrl}}/path?query=value HTTP/1.1
+Host: test.example.com
+
+###
+GET {{baseHttpsUrl}}/path?query=value HTTP/1.1
 Host: test.example.com

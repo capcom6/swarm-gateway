@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
@@ -10,7 +11,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/capcom6/swarm-gateway-tutorial/internal/common"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/discovery"
+	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/listener"
+	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/resolver"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/repository"
 	"github.com/docker/docker/client"
 	"github.com/gofiber/fiber/v2"
@@ -83,17 +87,10 @@ func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repositor
 
 	app.Use(logger.New())
 	app.Use(recover.New())
+	app.Use(resolver.New(servicesRepo))
 
 	app.Use(func(c *fiber.Ctx) error {
-		host := c.Get("Host")
-		if host == "" {
-			return fiber.ErrBadRequest
-		}
-
-		service, err := servicesRepo.GetServiceByHost(host)
-		if errors.Is(err, repository.ErrSeviceNotFound) {
-			return fiber.ErrBadGateway
-		}
+		service := c.Locals("service").(common.Service)
 
 		query := string(c.Context().URI().QueryString())
 		url := fmt.Sprintf("http://%s:%d%s", service.Name, service.Port, c.Path())
@@ -113,9 +110,23 @@ func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repositor
 		return nil
 	})
 
+	tlsListener, err := tls.Listen("tcp", ":3443", listener.NewConfig(servicesRepo))
+	if err != nil {
+		return err
+	}
+
 	wg.Add(1)
 	go func() {
 		if err := app.Listen(":3000"); err != nil {
+			log.Printf("can't listen: %s", err)
+		}
+
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		if err := app.Listener(tlsListener); err != nil {
 			log.Printf("can't listen: %s", err)
 		}
 
