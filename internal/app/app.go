@@ -14,6 +14,7 @@ import (
 	"github.com/capcom6/swarm-gateway-tutorial/internal/common"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/config"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/discovery"
+	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/acme"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/acme/cache"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/resolver"
@@ -21,7 +22,6 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/proxy"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/valyala/fasthttp"
 )
@@ -101,7 +101,7 @@ func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repositor
 			url += "?" + query
 		}
 
-		if err := proxy.DoTimeout(c, url, 5*time.Second); err != nil {
+		if err := proxy.DoTimeout(c, url, service.Host, 5*time.Second); err != nil {
 			log.Printf("proxy error: %s", err)
 			if errors.Is(err, fasthttp.ErrTimeout) {
 				return fiber.ErrGatewayTimeout
