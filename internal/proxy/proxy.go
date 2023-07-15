@@ -19,6 +19,12 @@ var client = &fasthttp.Client{
 func DoTimeout(c *fiber.Ctx, addr string, host string, timeout time.Duration) error {
 	return doAction(c, addr, func(cli *fasthttp.Client, req *fasthttp.Request, resp *fasthttp.Response) error {
 		req.Header.SetHost(host)
+
+		// buf := make([]byte, 0, 1024)
+		// buf = req.Header.AppendBytes(buf)
+		// log.Println(string(buf))
+
+		// req.Write()
 		return cli.DoTimeout(req, resp, timeout)
 	})
 }
@@ -37,11 +43,16 @@ func doAction(
 
 	copiedURL := utils.CopyString(addr)
 	req.SetRequestURI(copiedURL)
+
+	// log.Printf("1: %#v", req)
+
 	// NOTE: if req.isTLS is true, SetRequestURI keeps the scheme as https.
 	// Reference: https://github.com/gofiber/fiber/issues/1762
-	if scheme := getScheme(utils.UnsafeBytes(copiedURL)); len(scheme) > 0 {
-		req.URI().SetSchemeBytes(scheme)
-	}
+	// if scheme := getScheme(utils.UnsafeBytes(copiedURL)); len(scheme) > 0 {
+	// 	req.URI().SetSchemeBytes(scheme)
+	// }
+
+	// log.Printf("2: %#v", req)
 
 	req.Header.Del(fiber.HeaderConnection)
 	if err := action(cli, req, res); err != nil {
