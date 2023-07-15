@@ -16,9 +16,9 @@ var client = &fasthttp.Client{
 
 // DoTimeout performs the given request and waits for response during the given timeout duration.
 // This method can be used within a fiber.Handler
-func DoTimeout(c *fiber.Ctx, addr string, host string, timeout time.Duration) error {
-	return doAction(c, addr, func(cli *fasthttp.Client, req *fasthttp.Request, resp *fasthttp.Response) error {
-		req.Header.SetHost(host)
+func DoTimeout(c *fiber.Ctx, addr, host string, timeout time.Duration) error {
+	return doAction(c, addr, host, func(cli *fasthttp.Client, req *fasthttp.Request, resp *fasthttp.Response) error {
+		// req.Header.SetHost(host)
 
 		// buf := make([]byte, 0, 1024)
 		// buf = req.Header.AppendBytes(buf)
@@ -31,7 +31,7 @@ func DoTimeout(c *fiber.Ctx, addr string, host string, timeout time.Duration) er
 
 func doAction(
 	c *fiber.Ctx,
-	addr string,
+	addr, host string,
 	action func(cli *fasthttp.Client, req *fasthttp.Request, resp *fasthttp.Response) error,
 ) error {
 	cli := client
@@ -43,14 +43,15 @@ func doAction(
 
 	copiedURL := utils.CopyString(addr)
 	req.SetRequestURI(copiedURL)
+	req.Header.SetHost(host)
 
 	// log.Printf("1: %#v", req)
 
 	// NOTE: if req.isTLS is true, SetRequestURI keeps the scheme as https.
 	// Reference: https://github.com/gofiber/fiber/issues/1762
-	// if scheme := getScheme(utils.UnsafeBytes(copiedURL)); len(scheme) > 0 {
-	// 	req.URI().SetSchemeBytes(scheme)
-	// }
+	if scheme := getScheme(utils.UnsafeBytes(copiedURL)); len(scheme) > 0 {
+		req.URI().SetSchemeBytes(scheme)
+	}
 
 	// log.Printf("2: %#v", req)
 
