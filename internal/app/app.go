@@ -17,6 +17,7 @@ import (
 	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/acme"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/acme/cache"
+	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/auth"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/resolver"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/repository"
 	"github.com/docker/docker/client"
@@ -91,6 +92,7 @@ func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repositor
 	app.Use(logger.New())
 	app.Use(recover.New())
 	app.Use(resolver.New(servicesRepo))
+	app.Use(auth.New())
 
 	app.Use(func(c *fiber.Ctx) error {
 		service := c.Locals("service").(common.Service)
