@@ -86,10 +86,13 @@ func startDiscovery(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repos
 
 func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repository.ServicesRepository) error {
 	config := config.Get()
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		TrustedProxies: []string{},
+	})
 
 	app.Use(logger.New(logger.Config{
-		Format: "[${time}] ${status} - ${latency} ${method} ${host} ${path}\n",
+		Format:     `${ip} - [${time}] "${method} ${path} HTTP/1.1" ${host} ${status} ${bytesSent}\n`,
+		TimeFormat: "2006/01/02 15:04:05",
 	}))
 	app.Use(recover.New())
 	app.Use(resolver.New(servicesRepo))
