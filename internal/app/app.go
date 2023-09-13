@@ -88,7 +88,9 @@ func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repositor
 	config := config.Get()
 	app := fiber.New()
 
-	app.Use(logger.New())
+	app.Use(logger.New(logger.Config{
+		Format: "[${time}] ${status} - ${latency} ${method} ${host} ${path}\n",
+	}))
 	app.Use(recover.New())
 	app.Use(resolver.New(servicesRepo))
 
