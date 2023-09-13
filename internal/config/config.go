@@ -13,7 +13,8 @@ import (
 )
 
 type Config struct {
-	Acme Acme `yaml:"acme"`
+	Acme  Acme  `yaml:"acme"`
+	Proxy Proxy `yaml:"proxy"`
 }
 
 var instance Config

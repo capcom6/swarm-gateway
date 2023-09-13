@@ -101,7 +101,7 @@ func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repositor
 			url += "?" + query
 		}
 
-		if err := proxy.DoTimeout(c, url, service.Host, 5*time.Second); err != nil {
+		if err := proxy.DoTimeout(c, url, service.Host, config.Proxy.Timeout); err != nil {
 			log.Printf("proxy error: %s", err)
 			if errors.Is(err, fasthttp.ErrTimeout) {
 				return fiber.ErrGatewayTimeout
