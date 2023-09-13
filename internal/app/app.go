@@ -93,7 +93,7 @@ func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repositor
 	})
 
 	app.Use(logger.New(logger.Config{
-		Format:     `${ip} - [${time}] "${method} ${path} HTTP/1.1" ${host} ${status} ${bytesSent}\n`,
+		Format:     `${ip} - [${time}] "${method} ${path} HTTP/1.1" ${host} ${status} ${bytesSent}` + "\n",
 		TimeFormat: "2006/01/02 15:04:05",
 	}))
 	app.Use(recover.New())
