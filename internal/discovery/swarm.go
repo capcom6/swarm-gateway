@@ -17,6 +17,7 @@ const (
 	LabelGatewayEnabled    = "gateway.enabled"
 	LabelGatewayServerPort = "gateway.server.port"
 	LabelGatewayServerHost = "gateway.server.host"
+	LabelGatewayAuth       = "gateway.auth"
 
 	NetworkName = "proxy"
 )

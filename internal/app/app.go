@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
@@ -10,11 +11,18 @@ import (
 	"sync"
 	"time"
 
+	"github.com/capcom6/swarm-gateway-tutorial/internal/common"
+	"github.com/capcom6/swarm-gateway-tutorial/internal/config"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/discovery"
+	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy"
+	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/acme"
+	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/acme/cache"
+	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/resolver"
 	"github.com/capcom6/swarm-gateway-tutorial/internal/repository"
 	"github.com/docker/docker/client"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/proxy"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/valyala/fasthttp"
 )
 
@@ -77,40 +85,56 @@ func startDiscovery(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repos
 }
 
 func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repository.ServicesRepository) error {
+	config := config.Get()
 	app := fiber.New()
 
-	// app.Get("/", func(c *fiber.Ctx) error {
-	// 	return c.SendString("Hello, World!")
-	// })
+	app.Use(logger.New())
+	app.Use(recover.New())
+	app.Use(resolver.New(servicesRepo))
 
-	app.Get("/*", func(c *fiber.Ctx) error {
-		host := c.Get("Host")
-		if host == "" {
-			return fiber.ErrBadRequest
+	app.Use(func(c *fiber.Ctx) error {
+		service := c.Locals("service").(common.Service)
+
+		query := string(c.Context().URI().QueryString())
+		url := fmt.Sprintf("http://%s:%d%s", service.Name, service.Port, c.Path())
+		if len(query) > 0 {
+			url += "?" + query
 		}
 
-		service, err := servicesRepo.GetServiceByHost(host)
-		if errors.Is(err, repository.ErrSeviceNotFound) {
-			return fiber.ErrBadGateway
-		}
-
-		url := fmt.Sprintf("http://%s:%d/%s", service.Name, service.Port, c.Params("*"))
-
-		if err := proxy.DoTimeout(c, url, 5*time.Second); err != nil {
+		if err := proxy.DoTimeout(c, url, service.Host, config.Proxy.Timeout); err != nil {
 			log.Printf("proxy error: %s", err)
 			if errors.Is(err, fasthttp.ErrTimeout) {
 				return fiber.ErrGatewayTimeout
 			}
-			return err
+			return fiber.ErrBadGateway
 		}
 		// Remove Server header from response
 		c.Response().Header.Del(fiber.HeaderServer)
 		return nil
 	})
 
+	certsCache, err := cache.New(config.Acme.Storage)
+	if err != nil {
+		return fmt.Errorf("can't create acme cache: %w", err)
+	}
+
+	tlsListener, err := tls.Listen("tcp", ":3443", acme.NewConfig(servicesRepo, certsCache, config.Acme))
+	if err != nil {
+		return fmt.Errorf("can't listen: %w", err)
+	}
+
 	wg.Add(1)
 	go func() {
 		if err := app.Listen(":3000"); err != nil {
+			log.Printf("can't listen: %s", err)
+		}
+
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		if err := app.Listener(tlsListener); err != nil {
 			log.Printf("can't listen: %s", err)
 		}
 
