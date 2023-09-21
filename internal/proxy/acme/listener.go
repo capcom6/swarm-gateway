@@ -4,8 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 
-	"github.com/capcom6/swarm-gateway-tutorial/internal/config"
-	"github.com/capcom6/swarm-gateway-tutorial/internal/repository"
+	"github.com/capcom6/swarm-gateway/internal/config"
+	"github.com/capcom6/swarm-gateway/internal/repository"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 )

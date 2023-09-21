@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/capcom6/swarm-gateway-tutorial/internal/common"
+	"github.com/capcom6/swarm-gateway/internal/common"
 )
 
 var ErrSeviceNotFound = errors.New("service not found")

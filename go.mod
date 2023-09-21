@@ -1,4 +1,4 @@
-module github.com/capcom6/swarm-gateway-tutorial
+module github.com/capcom6/swarm-gateway
 
 go 1.19
 
