@@ -3,9 +3,9 @@ package auth
 import (
 	"log"
 
-	"github.com/capcom6/swarm-gateway-tutorial/internal/common"
-	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/auth/basic"
-	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/resolver"
+	"github.com/capcom6/swarm-gateway/internal/common"
+	"github.com/capcom6/swarm-gateway/internal/proxy/auth/basic"
+	"github.com/capcom6/swarm-gateway/internal/proxy/resolver"
 	"github.com/gofiber/fiber/v2"
 )
 

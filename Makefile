@@ -1,5 +1,5 @@
 project_name = swarm-gateway
-image_name = capcom6/swarm-gateway-tutorial
+image_name = capcom6/swarm-gateway
 image_tag = dev
 
 init:

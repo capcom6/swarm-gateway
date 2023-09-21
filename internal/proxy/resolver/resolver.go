@@ -3,7 +3,7 @@ package resolver
 import (
 	"errors"
 
-	"github.com/capcom6/swarm-gateway-tutorial/internal/repository"
+	"github.com/capcom6/swarm-gateway/internal/repository"
 	"github.com/gofiber/fiber/v2"
 )
 

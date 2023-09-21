@@ -3,8 +3,8 @@ package cache
 import (
 	"errors"
 
-	"github.com/capcom6/swarm-gateway-tutorial/internal/config"
-	"github.com/capcom6/swarm-gateway-tutorial/internal/proxy/acme/cache/s3"
+	"github.com/capcom6/swarm-gateway/internal/config"
+	"github.com/capcom6/swarm-gateway/internal/proxy/acme/cache/s3"
 	"golang.org/x/crypto/acme/autocert"
 )
 

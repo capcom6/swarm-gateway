@@ -6,7 +6,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/capcom6/swarm-gateway-tutorial/internal/common"
+	"github.com/capcom6/swarm-gateway/internal/common"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"

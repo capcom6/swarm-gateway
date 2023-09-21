@@ -18,7 +18,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: capcom6/swarm-gateway-tutorial
+          images: capcom6/swarm-gateway
           tags: |
             type=ref,event=branch
             type=ref,event=pr
