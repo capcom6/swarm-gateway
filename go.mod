@@ -8,12 +8,14 @@ require (
 	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/tg123/go-htpasswd v1.2.1
 	github.com/valyala/fasthttp v1.47.0
 	golang.org/x/crypto v0.11.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
+	github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect

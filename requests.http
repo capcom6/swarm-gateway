@@ -12,5 +12,10 @@ GET {{baseUrl}}/path?query=value HTTP/1.1
 Host: test.example.com
 
 ###
+GET {{baseUrl}}/path?query=value HTTP/1.1
+Host: test.example.com
+Authorization: Basic demo:demo
+
+###
 GET {{baseHttpsUrl}}/path?query=value HTTP/1.1
 Host: test.example.com
