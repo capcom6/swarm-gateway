@@ -17,7 +17,8 @@ const (
 	LabelGatewayEnabled    = "gateway.enabled"
 	LabelGatewayServerPort = "gateway.server.port"
 	LabelGatewayServerHost = "gateway.server.host"
-	LabelGatewayAuth       = "gateway.auth"
+	LabelGatewayAuthType   = "gateway.auth.type"
+	LabelGatewayAuthData   = "gateway.auth.data"
 
 	NetworkName = "proxy"
 )
@@ -66,10 +67,15 @@ func (sd *SwarmDiscovery) ListServices(ctx context.Context) ([]common.Service, e
 		}
 
 		services = append(services, common.Service{
-			ID:   service.ID,
-			Name: service.Spec.Name,
-			Host: service.Spec.Labels[LabelGatewayServerHost],
-			Port: uint16(port),
+			ID:      service.ID,
+			Version: service.Version.Index,
+			Name:    service.Spec.Name,
+			Host:    service.Spec.Labels[LabelGatewayServerHost],
+			Port:    uint16(port),
+			Auth: common.Auth{
+				Type: service.Spec.Labels[LabelGatewayAuthType],
+				Data: service.Spec.Labels[LabelGatewayAuthData],
+			},
 		})
 	}
 
