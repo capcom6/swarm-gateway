@@ -87,11 +87,7 @@ func startDiscovery(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repos
 
 func startProxy(ctx context.Context, wg *sync.WaitGroup, servicesRepo *repository.ServicesRepository) error {
 	config := config.Get()
-	app := fiber.New(fiber.Config{
-		EnableTrustedProxyCheck: true,
-		TrustedProxies:          []string{"10.0.0.0/8"},
-		ProxyHeader:             "X-Forwarded-For",
-	})
+	app := fiber.New()
 
 	app.Use(logger.New(logger.Config{
 		Format:     `${ip} - [${time}] "${method} ${path} HTTP/1.1" ${host} ${status} ${bytesSent} ${latency}` + "\n",
